@@ -33,7 +33,8 @@ class PostgresHandler(web.RequestHandler):
     def db(self):
         return self.application.db
 
-
+# PostgresTableHandler - Controller
+# Handling the APIs requests with their corresponding Table Model Methods
 class PostgresTableHandler(PostgresHandler):
 
     @gen.coroutine
@@ -55,6 +56,8 @@ class PostgresTableHandler(PostgresHandler):
         self.finish()
 
 
+# PostgresUserHandler - Controller
+# Handling the APIs requests with their corresponding User Model Methods
 class PostgresUserHandler(PostgresHandler):
     @gen.coroutine
     def get(self, id=None):

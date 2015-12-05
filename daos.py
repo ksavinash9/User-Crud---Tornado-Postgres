@@ -8,10 +8,14 @@ class UserDAO(object):
     def __init__(self, db):
         self.db = db
 
+    #Helper Method for generating a random string of length 10
     def _get_random_str(self, size=10):
         return ''.join(random.choice(string.ascii_uppercase + string.digits)
                        for x in range(size))
 
+    ## Models for APIS
+    # Get Method for retrieving the user
+    # Query Params - :id
     @gen.coroutine
     def get(self, id):
         sql = """
@@ -27,6 +31,7 @@ class UserDAO(object):
         cursor.close()
         yield result
 
+    # Get Method for retrieving the list of users  
     @gen.coroutine
     def get_list(self):
         sql = """
@@ -40,8 +45,8 @@ class UserDAO(object):
 
         cursor.close()
         yield result
-        # return result
 
+    # Post Method for creating users
     @gen.coroutine
     def create(self):
         sql = """
@@ -51,9 +56,8 @@ class UserDAO(object):
         name = self._get_random_str()
         cursor = yield momoko.Op(self.db.execute, sql, (name))
         yield cursor
-        # return cursor
 
-
+    # Put Method for updating users
     @gen.coroutine
     def update(self, id, data={}):
         fields = ''
@@ -69,9 +73,8 @@ class UserDAO(object):
         params.append(id)
         cursor = yield momoko.Op(self.db.execute, sql, params)
         yield cursor
-        # return cursor
 
-
+    # DeleteTable for deleting table
     @gen.coroutine
     def delete_table(self):
         sql = """
@@ -80,8 +83,8 @@ class UserDAO(object):
         """
         cursor = yield momoko.Op(self.db.execute, sql)
         yield cursor
-        # return cursor
 
+    # Delete Method for deleting table
     @gen.coroutine
     def delete(self, id):
         sql = """
@@ -92,8 +95,8 @@ class UserDAO(object):
         cursor = yield momoko.Op(self.db.execute, sql, (id,))
         cursor.close()
         yield ''
-        # return ''
 
+    # Create Table Method - which creates a table according to hard coded schema
     @gen.coroutine
     def create_table(self, callback=None):
         sql = """
@@ -106,4 +109,3 @@ class UserDAO(object):
         """
         cursor = yield momoko.Op(self.db.execute, sql)
         yield cursor
-        # return cursor
