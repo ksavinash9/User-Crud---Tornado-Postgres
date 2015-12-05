@@ -84,7 +84,7 @@ class UserDAO(object):
         cursor = yield momoko.Op(self.db.execute, sql)
         yield cursor
 
-    # Delete Method for deleting table
+    # Delete Method for deleting a row from Users table
     @gen.coroutine
     def delete(self, id):
         sql = """
