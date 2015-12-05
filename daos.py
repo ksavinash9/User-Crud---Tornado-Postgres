@@ -4,7 +4,7 @@ import momoko
 import string
 import random
 
-class ListingDAO(object):
+class UserDAO(object):
     def __init__(self, db):
         self.db = db
 
@@ -12,26 +12,11 @@ class ListingDAO(object):
         return ''.join(random.choice(string.ascii_uppercase + string.digits)
                        for x in range(size))
 
-    def _get_random_int(self): 
-        return random.randint(0, 1000)
-
-    def _get_random_postal_code(self, size=7): 
-        return ''.join(random.choice(string.digits)
-                        for x in range(size))
-
-    def _get_random_status(self): 
-        status_array = ['active', 'closed', 'deleted']
-        return random.choice(status_array)
-
-    def _get_random_listing_types(self): 
-        listing_types = ['rent', 'sale']
-        return random.choice(listing_types)
-
     @gen.coroutine
     def get(self, id):
         sql = """
-            SELECT user_id, listing_type, postal_code, price, status
-            FROM listings
+            SELECT id, name
+            FROM users_user
             WHERE id=%s
         """
         cursor = yield momoko.Op(self.db.execute, sql, (id,))
@@ -45,8 +30,8 @@ class ListingDAO(object):
     @gen.coroutine
     def get_list(self):
         sql = """
-            SELECT user_id, listing_type, postal_code, price, status
-            FROM listings
+            SELECT id, name
+            FROM users_user
         """
         cursor = yield momoko.Op(self.db.execute, sql)
         desc = cursor.description
@@ -55,21 +40,18 @@ class ListingDAO(object):
 
         cursor.close()
         yield result
+        # return result
 
     @gen.coroutine
     def create(self):
         sql = """
-            INSERT INTO listings (user_id, listing_type, postal_code, price, status)
-            VALUES (%s, %s, %s, %s, %s )
+            INSERT INTO users_user (name)
+            VALUES (%s)
         """
-        user_id = self._get_random_int()
-        status = self._get_random_status()
-        postal_code = self._get_random_postal_code()
-        listing_type = self._get_random_listing_types()
-        price = self._get_random_int()
-        
-        cursor = yield momoko.Op(self.db.execute, sql, (user_id, listing_type, postal_code, price, status))
+        name = self._get_random_str()
+        cursor = yield momoko.Op(self.db.execute, sql, (name))
         yield cursor
+        # return cursor
 
 
     @gen.coroutine
@@ -79,7 +61,7 @@ class ListingDAO(object):
             fields += '{0}=%s,'.format(key)
 
         sql = """
-            UPDATE listings
+            UPDATE users_user
             SET {0}
             WHERE id=%s
         """.format(fields[0:-1])
@@ -87,41 +69,41 @@ class ListingDAO(object):
         params.append(id)
         cursor = yield momoko.Op(self.db.execute, sql, params)
         yield cursor
+        # return cursor
 
 
     @gen.coroutine
     def delete_table(self):
         sql = """
-            DROP TABLE IF EXISTS listings;
-            DROP SEQUENCE IF EXISTS listing_id;
+            DROP TABLE IF EXISTS users_user;
+            DROP SEQUENCE IF EXISTS user_id;
         """
         cursor = yield momoko.Op(self.db.execute, sql)
         yield cursor
+        # return cursor
 
     @gen.coroutine
     def delete(self, id):
         sql = """
             DELETE
-            FROM listings
+            FROM users_user
             WHERE id=%s
         """
         cursor = yield momoko.Op(self.db.execute, sql, (id,))
         cursor.close()
         yield ''
+        # return ''
 
     @gen.coroutine
     def create_table(self, callback=None):
         sql = """
-            CREATE SEQUENCE  listing_id;
-            CREATE TABLE IF NOT EXISTS listings (
-                id integer PRIMARY KEY DEFAULT nextval('listing_id') ,
-                user_id  integer,
-                listing_type varchar(80),
-                postal_code varchar(80),
-                price integer,
-                status varchar(80)
+            CREATE SEQUENCE  user_id;
+            CREATE TABLE IF NOT EXISTS users_user (
+                id integer PRIMARY KEY DEFAULT nextval('user_id') ,
+                name  varchar(80) UNIQUE
             );
-            ALTER SEQUENCE listing_id OWNED BY listings.id;
+            ALTER SEQUENCE user_id OWNED BY users_user.id;
         """
         cursor = yield momoko.Op(self.db.execute, sql)
         yield cursor
+        # return cursor

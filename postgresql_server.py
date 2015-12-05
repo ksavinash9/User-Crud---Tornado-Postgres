@@ -1,4 +1,4 @@
-from daos import ListingDAO
+from daos import UserDAO
 from tornado import httpserver, ioloop, options, web, gen
 from tornado.escape import json_decode
 import json
@@ -10,8 +10,8 @@ class Application(web.Application):
         handlers = [
             (r"/create-table", PostgresTableHandler),
             (r"/delete-table", PostgresTableHandler),
-            (r"/listing/(\d+)", PostgresListingHandler),
-            (r"/listing", PostgresListingHandler)
+            (r"/user/(\d+)", PostgresUserHandler),
+            (r"/user", PostgresUserHandler)
         ]
         web.Application.__init__(self, handlers)
         dsn = 'dbname=ds_test user=db_test password=test ' \
@@ -38,7 +38,7 @@ class PostgresTableHandler(PostgresHandler):
 
     @gen.coroutine
     def post(self):
-        dao = ListingDAO(self.db)
+        dao = UserDAO(self.db)
         cursor = yield (dao.create_table())
         if not cursor.closed:
             self.write('closing cursor')
@@ -47,7 +47,7 @@ class PostgresTableHandler(PostgresHandler):
 
     @gen.coroutine
     def delete(self):
-        dao = ListingDAO(self.db)
+        dao = UserDAO(self.db)
         cursor = yield (dao.delete_table())
         if not cursor.closed:
             self.write('closing cursor')
@@ -55,10 +55,10 @@ class PostgresTableHandler(PostgresHandler):
         self.finish()
 
 
-class PostgresListingHandler(PostgresHandler):
+class PostgresUserHandler(PostgresHandler):
     @gen.coroutine
     def get(self, id=None):
-        dao = ListingDAO(self.db)
+        dao = UserDAO(self.db)
         if not id:
             dict_result = yield (dao.get_list())
         else:
@@ -68,7 +68,7 @@ class PostgresListingHandler(PostgresHandler):
 
     @gen.coroutine
     def post(self):
-        dao = ListingDAO(self.db)
+        dao = UserDAO(self.db)
         cursor = yield (dao.create())
         if not cursor.closed:
             self.write('closing cursor')
@@ -81,30 +81,30 @@ class PostgresListingHandler(PostgresHandler):
             self.write('invalid request')
             self.finish()
         else:
-            dao = ListingDAO(self.db)
+            dao = UserDAO(self.db)
             if id:
                 result = yield (dao.update(id, data=self.json_args))
                 dict_result = yield (dao.get(id))
                 self.write(json.dumps(dict_result))
             else:
-                self.write('invalid listing')
+                self.write('invalid user')
             self.finish()
 
     @gen.coroutine
     def delete(self, id=None):
         if id:
-            dao = ListingDAO(self.db)
+            dao = UserDAO(self.db)
             result = yield (dao.delete(id))
-            self.write('listing deleted')
+            self.write('user deleted')
         else:
-            self.write('invalid listing')
+            self.write('invalid user')
         self.finish()
 
 
 
 def main():
     http_server = httpserver.HTTPServer(Application())
-    PORT = 8004
+    PORT = 9001
     print("serving at port", PORT)
     http_server.listen(PORT)
     ioloop.IOLoop.instance().start()
